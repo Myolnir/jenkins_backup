@@ -6,34 +6,28 @@ import com.myolnir.model.JenkinsModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Created by Myolnir on 03/07/2017.
- */
 @Service
 public class BackupService {
 
     private static final Logger log = LoggerFactory.getLogger(BackupService.class);
 
     @Autowired
-    private HttpComponentsClientHttpRequestFactory customHttpRequestFactory;
+    private JenkinsConfigData data;
 
     @Autowired
-    private JenkinsConfigData data;
+    private HttpComponentsClientHttpRequestFactory customHttpRequestFactory;
 
     /**
      * Scheduled task every minute that backups data into given backup
