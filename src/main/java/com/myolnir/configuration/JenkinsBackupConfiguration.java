@@ -1,8 +1,10 @@
 package com.myolnir.configuration;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -11,9 +13,29 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class JenkinsBackupConfiguration {
 
+    @Value("${custom.rest.connection.connection-request-timeout}")
+    private int connectionRequestTimeout;
+
+    @Value("${custom.rest.connection.connect-timeout}")
+    private int connectionConnectTimeout;
+
+    @Value("${custom.rest.connection.read-timeout}")
+    private int connectionReadTimeout;
+
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        // Do any additional configuration here
-        return builder.build();
+    @ConfigurationProperties(prefix = "custom.rest.connection")
+    public HttpComponentsClientHttpRequestFactory customHttpRequestFactory()
+    {
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+        factory.setConnectTimeout(connectionConnectTimeout);
+        factory.setConnectionRequestTimeout(connectionRequestTimeout);
+        factory.setReadTimeout(connectionReadTimeout);
+        return factory;
+    }
+
+    @Bean
+    public RestTemplate customRestTemplate()
+    {
+        return new RestTemplate(customHttpRequestFactory());
     }
 }

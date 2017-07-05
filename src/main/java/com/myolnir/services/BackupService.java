@@ -2,16 +2,19 @@ package com.myolnir.services;
 
 import com.myolnir.model.JenkinsJob;
 import com.myolnir.model.JenkinsModel;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,17 +45,21 @@ public class BackupService {
     /**
      * Connects to jenkins retrieve list of jobs and save all of them to disk.
      */
-    public void backupData(final Boolean withAuth, final String jenkinsBaseUrl, final String backupUrl) {
+    public void backupData(final Boolean withAuth, final String jenkinsBaseUrl, final String backupUrl)  {
         log.debug("Init backup data from jenkins");
         if (withAuth) {
             restTemplate.getInterceptors().add(
                     new BasicAuthorizationInterceptor(jenkinsUsername, jenkinsPassword));
         }
-        JenkinsModel jobs = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobsUrl, JenkinsModel.class);
-        jobs.getJobs().forEach((JenkinsJob job) -> {
-            String xmlData = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobUrl + job.getName() + "/config.xml", String.class);
-            writeFileToDisk(xmlData, backupUrl + "/" + job.getName() + ".xml");
-        });
+        try {
+            JenkinsModel jobs = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobsUrl, JenkinsModel.class);
+            jobs.getJobs().forEach((JenkinsJob job) -> {
+                String xmlData = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobUrl + job.getName() + "/config.xml", String.class);
+                writeFileToDisk(xmlData, backupUrl + "/" + job.getName() + ".xml");
+            });
+        } catch (RestClientException connectionError) {
+            log.error("Error connecting Jenkins caused by: " + connectionError.getMessage());
+        }
         log.debug("Finish backup data");
     }
 
