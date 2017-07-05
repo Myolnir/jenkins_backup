@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.annotation.RequestScope;
 
 /**
  * Created by Myolnir on 04/07/2017.
@@ -33,9 +35,4 @@ public class JenkinsBackupConfiguration {
         return factory;
     }
 
-    @Bean
-    public RestTemplate customRestTemplate()
-    {
-        return new RestTemplate(customHttpRequestFactory());
-    }
 }

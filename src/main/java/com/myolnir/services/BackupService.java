@@ -1,20 +1,22 @@
 package com.myolnir.services;
 
+import com.myolnir.model.JenkinsConfigData;
 import com.myolnir.model.JenkinsJob;
 import com.myolnir.model.JenkinsModel;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,34 +30,25 @@ public class BackupService {
     private static final Logger log = LoggerFactory.getLogger(BackupService.class);
 
     @Autowired
-    private RestTemplate restTemplate;
+    private HttpComponentsClientHttpRequestFactory customHttpRequestFactory;
 
-    @Value("${jenkinsBackup.jenkins.url}")
-    private String jenkinsJobsUrl;
-
-    @Value("${jenkinsBackup.jenkins.username}")
-    private String jenkinsUsername;
-
-    @Value("${jenkinsBackup.jenkins.password}")
-    private String jenkinsPassword;
-
-    @Value("${jenkinsBackup.jenkins.jobUrl}")
-    private String jenkinsJobUrl;
+    @Autowired
+    private JenkinsConfigData data;
 
     /**
-     * Connects to jenkins retrieve list of jobs and save all of them to disk.
+     * Scheduled task every minute that backups data into given backup
      */
-    public void backupData(final Boolean withAuth, final String jenkinsBaseUrl, final String backupUrl)  {
+    @Scheduled(cron = "${jenkinsBackup.cron}")
+    public void backupData()  {
         log.debug("Init backup data from jenkins");
-        if (withAuth) {
-            restTemplate.getInterceptors().add(
-                    new BasicAuthorizationInterceptor(jenkinsUsername, jenkinsPassword));
-        }
+        RestTemplate restTemplate = new RestTemplate(customHttpRequestFactory);
+        restTemplate.getInterceptors().add(
+                new BasicAuthorizationInterceptor(data.getJenkinsUsername(), data.getJenkinsPassword()));
         try {
-            JenkinsModel jobs = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobsUrl, JenkinsModel.class);
+            JenkinsModel jobs = restTemplate.getForObject(data.getJenkinsJobsUrl(), JenkinsModel.class);
             jobs.getJobs().forEach((JenkinsJob job) -> {
-                String xmlData = restTemplate.getForObject(jenkinsBaseUrl + jenkinsJobUrl + job.getName() + "/config.xml", String.class);
-                writeFileToDisk(xmlData, backupUrl + "/" + job.getName() + ".xml");
+                String xmlData = restTemplate.getForObject(data.getJenkinsJobUrl() + job.getName() + "/config.xml", String.class);
+                writeFileToDisk(xmlData, data.getBackupUrl() + "/" + job.getName() + ".xml");
             });
         } catch (RestClientException connectionError) {
             log.error("Error connecting Jenkins caused by: " + connectionError.getMessage());
