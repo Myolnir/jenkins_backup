@@ -1,8 +1,5 @@
 package com.myolnir.model;
 
-/**
- * Created by Myolnir on 03/07/2017.
- */
 public class JenkinsJob {
 
     private String name;

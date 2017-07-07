@@ -1,10 +1,6 @@
 package com.myolnir;
 
-import com.myolnir.model.JenkinsConfigData;
 import com.myolnir.model.JenkinsManager;
-import com.myolnir.services.BackupService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

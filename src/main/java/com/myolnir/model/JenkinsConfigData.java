@@ -1,12 +1,9 @@
 package com.myolnir.model;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by Myolnir on 05/07/2017.
- */
+
 @Component
 public class JenkinsConfigData {
 
