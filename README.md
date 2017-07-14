@@ -7,5 +7,7 @@ It receives two parameters, first one is the jenkins url and second one is the l
 ##### TODO 
 
 Add CI integration with Travis
+
 Dockerize
+
 Add restore functionality
